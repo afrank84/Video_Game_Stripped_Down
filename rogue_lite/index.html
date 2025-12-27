@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stripped Rogue-lite</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="wrap">
+    <canvas id="game" width="960" height="540"></canvas>
+
+    <div id="hud">
+      <div>Level: <span id="hudLevel">1</span></div>
+      <div>HP: <span id="hudHP">100</span></div>
+      <div>Enemies: <span id="hudEnemies">0</span></div>
+      <div>Upgrades: <span id="hudUpgrades">0</span></div>
+      <div class="hint">WASD to move. Mouse to aim. Left click to shoot. P to pause.</div>
+    </div>
+
+    <div id="overlay" class="hidden">
+      <div id="panel">
+        <h2 id="overlayTitle">Title</h2>
+        <div id="overlayBody"></div>
+        <div id="overlayActions"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

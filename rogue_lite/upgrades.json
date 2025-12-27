@@ -1,0 +1,22 @@
+{
+  "upgrades": [
+    { "id": "dmg_1",  "name": "Damage +10%",          "desc": "Increase bullet damage.",          "stat": "damageMult",       "op": "mul", "value": 1.10 },
+    { "id": "dmg_2",  "name": "Damage +15%",          "desc": "Increase bullet damage.",          "stat": "damageMult",       "op": "mul", "value": 1.15 },
+
+    { "id": "rate_1", "name": "Fire Rate +10%",       "desc": "Shoot slightly faster.",           "stat": "fireRateMult",     "op": "mul", "value": 1.10 },
+    { "id": "rate_2", "name": "Fire Rate +15%",       "desc": "Shoot faster.",                    "stat": "fireRateMult",     "op": "mul", "value": 1.15 },
+
+    { "id": "proj_1", "name": "Projectiles +1",       "desc": "Fire one extra bullet.",           "stat": "projectileCount",  "op": "add", "value": 1 },
+
+    { "id": "spread_1","name":"Spread +6 deg",        "desc": "Wider multi-shot spread.",         "stat": "spreadDeg",        "op": "add", "value": 6 },
+
+    { "id": "ms_1",   "name": "Move Speed +10%",      "desc": "Move faster.",                     "stat": "moveSpeedMult",    "op": "mul", "value": 1.10 },
+    { "id": "ms_2",   "name": "Move Speed +15%",      "desc": "Move faster.",                     "stat": "moveSpeedMult",    "op": "mul", "value": 1.15 },
+
+    { "id": "bs_1",   "name": "Bullet Speed +10%",    "desc": "Bullets travel faster.",           "stat": "bulletSpeedMult",  "op": "mul", "value": 1.10 },
+    { "id": "bs_2",   "name": "Bullet Speed +15%",    "desc": "Bullets travel faster.",           "stat": "bulletSpeedMult",  "op": "mul", "value": 1.15 },
+
+    { "id": "hp_1",   "name": "Max HP +15",           "desc": "Increase maximum health.",         "stat": "maxHP",            "op": "add", "value": 15 },
+    { "id": "regen_1","name": "Regen +0.6 / sec",     "desc": "Slowly heal over time.",           "stat": "hpRegenPerSec",    "op": "add", "value": 0.6 }
+  ]
+}

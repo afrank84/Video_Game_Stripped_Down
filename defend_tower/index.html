@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Idle Tower Defense (Squares)</title>
+	<link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+	<div class="layout">
+		<header class="topbar">
+			<div class="title">Idle Tower Defense</div>
+
+			<div class="stats">
+				<div><span class="label">Gold:</span> <span id="gold">0</span></div>
+				<div><span class="label">Wave:</span> <span id="wave">1</span></div>
+				<div><span class="label">Enemies:</span> <span id="enemyCount">0</span></div>
+			</div>
+
+			<div class="stats">
+				<div><span class="label">Tower HP:</span> <span id="towerHp">100</span> / <span
+						id="towerHpMax">100</span></div>
+				<div><span class="label">DPS:</span> <span id="towerDps">10.0</span></div>
+				<div><span class="label">Click CD:</span> <span id="clickCd">0.50</span>s</div>
+			</div>
+		</header>
+
+		<main class="main">
+			<section class="play">
+				<canvas id="game" width="720" height="720"></canvas>
+
+				<div class="hint">
+					Click enemies to deal damage (cooldown applies). Tower auto-attacks.
+					If an enemy reaches the tower, it damages the tower over time.
+				</div>
+			</section>
+
+			<aside class="panel">
+				<div class="panelHeader">
+					<div class="panelTitle">Tech Tree</div>
+					<button id="toggleTech" class="btn">Hide</button>
+				</div>
+
+				<div id="techTree" class="techTree"></div>
+
+				<div class="divider"></div>
+
+				<div class="panelTitle">Upgrades Summary</div>
+				<div class="summary" id="summary"></div>
+
+				<div class="divider"></div>
+
+				<div class="panelTitle">Log</div>
+				<div class="log" id="log"></div>
+			</aside>
+		</main>
+
+		<footer class="footer">
+			<button id="restart" class="btn danger">Restart</button>
+			<div class="footerNote">No libraries. Single canvas. Text tech tree with prerequisites.</div>
+		</footer>
+	</div>
+
+	<script src="game.js"></script>
+</body>
+
+</html>

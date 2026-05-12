@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<title>Server Stack</title>
+
+	<style>
+		body {
+			margin: 0;
+			overflow: hidden;
+			background: #111;
+			font-family: Arial, sans-serif;
+			color: white;
+		}
+
+		#ui {
+			position: fixed;
+			top: 10px;
+			left: 10px;
+			z-index: 100;
+			background: rgba(0, 0, 0, 0.75);
+			border: 1px solid #444;
+			border-radius: 8px;
+			padding: 12px;
+			line-height: 1.5;
+		}
+
+		#instructions {
+			margin-top: 8px;
+			color: #aaa;
+			font-size: 13px;
+		}
+
+		#pauseOverlay {
+			position: fixed;
+			inset: 0;
+			display: none;
+			align-items: center;
+			justify-content: center;
+			background: rgba(0, 0, 0, 0.5);
+			font-size: 48px;
+			font-weight: bold;
+			z-index: 200;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div id="ui">
+		<div>Money: $<span id="money">0</span></div>
+		<div>Current Piece: <span id="piece">None</span></div>
+
+		<div id="instructions">
+			← → Move<br>
+			Space = Rotate<br>
+			ESC = Pause
+		</div>
+	</div>
+
+	<div id="pauseOverlay">
+		PAUSED
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
+
+	<script>
+		const {
+			Engine,
+			Render,
+			Runner,
+			Bodies,
+			Body,
+			Composite,
+			Events
+		} = Matter;
+
+		const engine = Engine.create();
+		engine.gravity.y = 0.20;
+
+		const world = engine.world;
+
+		const WIDTH = window.innerWidth;
+		const HEIGHT = window.innerHeight;
+
+		const render = Render.create({
+			element: document.body,
+			engine: engine,
+			options: {
+				width: WIDTH,
+				height: HEIGHT,
+				wireframes: false,
+				background: "#111"
+			}
+		});
+
+		Render.run(render);
+
+		const runner = Runner.create();
+		Runner.run(runner, engine);
+
+		const moneyLabel = document.getElementById("money");
+		const pieceLabel = document.getElementById("piece");
+		const pauseOverlay = document.getElementById("pauseOverlay");
+
+		let money = 0;
+		let paused = false;
+
+		const BLOCK_SIZE = 30;
+
+		const COLORS = {
+			red: "#d94a4a",
+			green: "#42d96b",
+			yellow: "#e6d34f"
+		};
+
+		const SHAPES = [
+			[[0, 0], [1, 0], [0, 1], [1, 1]], // O
+			[[0, 0], [0, 1], [0, 2], [1, 2]], // L
+			[[1, 0], [1, 1], [1, 2], [0, 2]], // J
+			[[0, 0], [1, 0], [2, 0], [3, 0]], // I
+			[[1, 0], [2, 0], [0, 1], [1, 1]], // S
+			[[0, 0], [1, 0], [1, 1], [2, 1]], // Z
+			[[0, 0], [1, 0], [2, 0], [1, 1]]  // T
+		];
+
+		const TYPES = [
+			{
+				name: "Red Server",
+				color: COLORS.red,
+				value: -5
+			},
+			{
+				name: "Green Server",
+				color: COLORS.green,
+				value: 10
+			},
+			{
+				name: "Yellow Stabilizer",
+				color: COLORS.yellow,
+				value: 0
+			}
+		];
+
+		const ground = Bodies.rectangle(
+			WIDTH / 2,
+			HEIGHT - 10,
+			WIDTH,
+			20,
+			{
+				isStatic: true,
+				render: {
+					fillStyle: "#222"
+				}
+			}
+		);
+
+		const platform = Bodies.rectangle(
+			WIDTH / 2,
+			HEIGHT - 80,
+			240,
+			20,
+			{
+				isStatic: true,
+				label: "platform",
+				render: {
+					fillStyle: "#888"
+				}
+			}
+		);
+
+		const leftWall = Bodies.rectangle(
+			-20,
+			HEIGHT / 2,
+			40,
+			HEIGHT,
+			{
+				isStatic: true
+			}
+		);
+
+		const rightWall = Bodies.rectangle(
+			WIDTH + 20,
+			HEIGHT / 2,
+			40,
+			HEIGHT,
+			{
+				isStatic: true
+			}
+		);
+
+		Composite.add(world, [
+			ground,
+			platform,
+			leftWall,
+			rightWall
+		]);
+
+		let currentPiece = null;
+		let pieceLocked = false;
+
+		function createTetromino() {
+
+			const type = TYPES[Math.floor(Math.random() * TYPES.length)];
+			const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+
+			const parts = [];
+
+			for (const cell of shape) {
+
+				const x = cell[0] * BLOCK_SIZE;
+				const y = cell[1] * BLOCK_SIZE;
+
+				parts.push(
+					Bodies.rectangle(
+						x,
+						y,
+						BLOCK_SIZE,
+						BLOCK_SIZE,
+						{
+							friction: 0.9,
+							frictionStatic: 1.0,
+							restitution: 0.0,
+							density: type.name === "Yellow Stabilizer" ? 0.01 : 0.004,
+							render: {
+								fillStyle: type.color
+							}
+						}
+					)
+				);
+			}
+
+			const compound = Body.create({
+				parts: parts,
+				frictionAir: 0.04
+			});
+
+			Body.setPosition(compound, {
+				x: WIDTH / 2,
+				y: 100
+			});
+
+			compound.gameData = {
+				type: type.name,
+				value: type.value,
+				attached: false,
+				frozen: false,
+				removed: false
+			};
+
+			currentPiece = compound;
+			pieceLocked = false;
+
+			pieceLabel.textContent = type.name;
+
+			Composite.add(world, compound);
+		}
+
+		function isPiece(body) {
+			return body.gameData !== undefined;
+		}
+
+		function freezePiece(piece) {
+
+			if (piece.gameData.frozen) {
+				return;
+			}
+
+			Body.setStatic(piece, true);
+			piece.gameData.frozen = true;
+		}
+
+		function removePiece(piece) {
+
+			if (!piece || piece.gameData.removed) {
+				return;
+			}
+
+			piece.gameData.removed = true;
+
+			Composite.remove(world, piece);
+
+			if (piece === currentPiece) {
+				currentPiece = null;
+
+				setTimeout(() => {
+					createTetromino();
+				}, 500);
+			}
+		}
+
+		function lockCurrentPiece() {
+
+			if (pieceLocked || !currentPiece) {
+				return;
+			}
+
+			pieceLocked = true;
+
+			if (currentPiece.gameData.type === "Yellow Stabilizer") {
+				freezePiece(currentPiece);
+			}
+
+			currentPiece = null;
+
+			setTimeout(() => {
+				createTetromino();
+			}, 500);
+		}
+
+		function updateMoney(deltaSeconds) {
+
+			const bodies = Composite.allBodies(world);
+
+			for (const body of bodies) {
+
+				if (!isPiece(body)) {
+					continue;
+				}
+
+				const data = body.gameData;
+
+				if (data.removed) {
+					continue;
+				}
+
+				if (data.type === "Green Server") {
+
+					if (data.attached) {
+						money += data.value * deltaSeconds;
+					}
+				}
+
+				if (data.type === "Red Server") {
+
+					if (!data.attached) {
+						money += data.value * deltaSeconds;
+					}
+				}
+			}
+
+			moneyLabel.textContent = Math.floor(money);
+		}
+
+		Events.on(engine, "collisionStart", function (event) {
+
+			for (const pair of event.pairs) {
+
+				const a = pair.bodyA;
+				const b = pair.bodyB;
+
+				const bodies = [a, b];
+
+				for (const body of bodies) {
+
+					const parent = body.parent;
+
+					if (!isPiece(parent)) {
+						continue;
+					}
+
+					if (parent.gameData.removed) {
+						continue;
+					}
+
+					const other = body === a ? b : a;
+
+					if (
+						other === platform ||
+						other.parent === platform
+					) {
+						parent.gameData.attached = true;
+
+						if (parent === currentPiece) {
+							lockCurrentPiece();
+						}
+					}
+
+					if (
+						isPiece(other.parent) ||
+						isPiece(other)
+					) {
+						parent.gameData.attached = true;
+
+						if (parent === currentPiece) {
+							lockCurrentPiece();
+						}
+					}
+
+					if (other === ground) {
+
+						const x = parent.position.x;
+
+						const platformLeft =
+							platform.position.x - 120;
+
+						const platformRight =
+							platform.position.x + 120;
+
+						if (
+							x < platformLeft ||
+							x > platformRight
+						) {
+							removePiece(parent);
+						}
+					}
+				}
+			}
+		});
+
+		Events.on(engine, "beforeUpdate", function (event) {
+
+			if (paused) {
+				return;
+			}
+
+			const deltaSeconds = event.delta / 1000;
+
+			updateMoney(deltaSeconds);
+		});
+
+		document.addEventListener("keydown", function (event) {
+
+			if (event.code === "Escape") {
+
+				paused = !paused;
+
+				engine.timing.timeScale = paused ? 0 : 1;
+
+				pauseOverlay.style.display =
+					paused ? "flex" : "none";
+
+				return;
+			}
+
+			if (paused) {
+				return;
+			}
+
+			if (!currentPiece || pieceLocked) {
+				return;
+			}
+
+			if (event.code === "ArrowLeft") {
+
+				Body.setVelocity(currentPiece, {
+					x: -3,
+					y: currentPiece.velocity.y
+				});
+			}
+
+			if (event.code === "ArrowRight") {
+
+				Body.setVelocity(currentPiece, {
+					x: 3,
+					y: currentPiece.velocity.y
+				});
+			}
+
+			if (event.code === "Space") {
+
+				Body.rotate(currentPiece, Math.PI / 2);
+			}
+		});
+
+		createTetromino();
+	</script>
+
+</body>
+
+</html>
